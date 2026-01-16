@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { Plus, Edit2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface LeaveType {
   _id: string;
@@ -46,7 +47,7 @@ export function SystemSettings({ leaveTypes, monthlyAccrual = 1 }: SystemSetting
 
   const handleCreateLeaveType = async () => {
     if (!newLeaveType.name.trim()) {
-      alert('Please enter a name');
+      toast.error('Please enter a name');
       return;
     }
 
@@ -54,14 +55,15 @@ export function SystemSettings({ leaveTypes, monthlyAccrual = 1 }: SystemSetting
     try {
       const result = await createLeaveType(newLeaveType);
       if (result.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
+        toast.success('Leave type created successfully');
         setCreateDialogOpen(false);
         setNewLeaveType({ name: '', color: '#3b82f6', defaultMonthlyAccrual: 1 });
         router.refresh();
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to create leave type');
+      toast.error(error.message || 'Failed to create leave type');
     } finally {
       setIsSubmitting(false);
     }
@@ -77,14 +79,15 @@ export function SystemSettings({ leaveTypes, monthlyAccrual = 1 }: SystemSetting
         ...editLeaveType,
       });
       if (result.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
+        toast.success('Leave type updated successfully');
         setEditDialogOpen(null);
         setEditLeaveType(null);
         router.refresh();
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to update leave type');
+      toast.error(error.message || 'Failed to update leave type');
     } finally {
       setIsSubmitting(false);
     }
@@ -93,7 +96,7 @@ export function SystemSettings({ leaveTypes, monthlyAccrual = 1 }: SystemSetting
   const handleUpdateMonthlyAccrual = async () => {
     const value = parseFloat(monthlyAccrualValue);
     if (isNaN(value) || value < 0) {
-      alert('Please enter a valid number');
+      toast.error('Please enter a valid number');
       return;
     }
 
@@ -104,12 +107,13 @@ export function SystemSettings({ leaveTypes, monthlyAccrual = 1 }: SystemSetting
         value,
       });
       if (result.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
+        toast.success('Monthly accrual rate updated successfully');
         router.refresh();
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to update monthly accrual');
+      toast.error(error.message || 'Failed to update monthly accrual');
     } finally {
       setIsSubmitting(false);
     }

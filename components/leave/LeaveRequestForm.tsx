@@ -8,12 +8,13 @@ import { Calendar } from '@/components/ui/calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { requestLeave } from '@/app/actions/employee-actions';
 import { calculateBusinessDays } from '@/lib/utils/date';
-import { CalendarIcon, AlertCircle } from 'lucide-react';
+import { CalendarIcon } from 'lucide-react';
+import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 
@@ -88,9 +89,10 @@ export function LeaveRequestForm({ leaveTypes, onSuccess }: LeaveRequestFormProp
       });
 
       if (result.error) {
+        toast.error(result.error);
         setError(result.error);
       } else {
-        setSuccess(true);
+        toast.success('Leave request submitted successfully!');
         form.reset();
         setDateRange(undefined);
         if (onSuccess) {
@@ -100,7 +102,9 @@ export function LeaveRequestForm({ leaveTypes, onSuccess }: LeaveRequestFormProp
         }
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to submit leave request');
+      const errorMessage = err.message || 'Failed to submit leave request';
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -146,40 +150,48 @@ export function LeaveRequestForm({ leaveTypes, onSuccess }: LeaveRequestFormProp
               )}
             />
 
-            <div className="space-y-4">
-              <FormLabel>Select Dates</FormLabel>
-              <div className="flex justify-center">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleDateSelect}
-                  numberOfMonths={1}
-                  className="rounded-md border"
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                />
+            <div className="space-y-6">
+              <div>
+                <Label className="text-base font-medium mb-4 block">Select Dates</Label>
+                <div className="flex justify-center py-6 px-4 bg-muted/30 rounded-lg">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={handleDateSelect}
+                    numberOfMonths={1}
+                    className="rounded-md border bg-background p-6 shadow-sm [--cell-size:2.5rem] w-full max-w-lg"
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  />
+                </div>
               </div>
+              
               {dateRange?.from && (
-                <div className="flex flex-col gap-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">From:</span>
-                    <span className="font-medium">{format(dateRange.from, 'PPP')}</span>
+                <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-3 text-sm">
+                    <CalendarIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <div className="flex-1">
+                      <span className="text-muted-foreground block text-xs mb-1">From Date</span>
+                      <span className="font-semibold text-base">{format(dateRange.from, 'PPP')}</span>
+                    </div>
                   </div>
                   {dateRange.to && (
-                    <div className="flex items-center gap-2">
-                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">To:</span>
-                      <span className="font-medium">{format(dateRange.to, 'PPP')}</span>
+                    <div className="flex items-center gap-3 text-sm">
+                      <CalendarIcon className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                      <div className="flex-1">
+                        <span className="text-muted-foreground block text-xs mb-1">To Date</span>
+                        <span className="font-semibold text-base">{format(dateRange.to, 'PPP')}</span>
+                      </div>
                     </div>
                   )}
                   {dateRange.from && dateRange.to && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Business Days:</span>
-                      <span className="font-semibold">{calculateDays()} days</span>
+                    <div className="pt-3 border-t flex items-center justify-between">
+                      <span className="text-muted-foreground text-sm">Business Days:</span>
+                      <span className="font-bold text-lg text-primary">{calculateDays()} days</span>
                     </div>
                   )}
                 </div>
               )}
+              
               <FormField
                 control={form.control}
                 name="startDate"
@@ -211,21 +223,8 @@ export function LeaveRequestForm({ leaveTypes, onSuccess }: LeaveRequestFormProp
               )}
             />
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
 
-            {success && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>Leave request submitted successfully!</AlertDescription>
-              </Alert>
-            )}
-
-            <Button type="submit" disabled={isSubmitting} className="w-full">
+            <Button type="submit" disabled={isSubmitting} className="w-full bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
               {isSubmitting ? 'Submitting...' : 'Submit Request'}
             </Button>
           </form>

@@ -12,6 +12,7 @@ import { approveLeaveRequest, declineLeaveRequest } from '@/app/actions/admin-ac
 import { formatDate } from '@/lib/utils/date';
 import { CheckCircle2, XCircle, MessageSquare } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface LeaveRequest {
   _id: string;
@@ -52,14 +53,15 @@ export function ApprovalQueue({ requests }: ApprovalQueueProps) {
         adminNotes: adminNotes || undefined,
       });
       if (result.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
+        toast.success('Leave request approved successfully');
         setApproveDialogOpen(null);
         setAdminNotes('');
         router.refresh();
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to approve request');
+      toast.error(error.message || 'Failed to approve request');
     } finally {
       setProcessingId(null);
     }
@@ -67,7 +69,7 @@ export function ApprovalQueue({ requests }: ApprovalQueueProps) {
 
   const handleDecline = async (requestId: string) => {
     if (!adminNotes.trim()) {
-      alert('Please provide a reason for declining');
+      toast.error('Please provide a reason for declining');
       return;
     }
     setProcessingId(requestId);
@@ -77,14 +79,15 @@ export function ApprovalQueue({ requests }: ApprovalQueueProps) {
         adminNotes,
       });
       if (result.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
+        toast.success('Leave request declined');
         setDeclineDialogOpen(null);
         setAdminNotes('');
         router.refresh();
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to decline request');
+      toast.error(error.message || 'Failed to decline request');
     } finally {
       setProcessingId(null);
     }

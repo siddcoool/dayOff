@@ -6,6 +6,7 @@ import { UserButton } from '@clerk/nextjs';
 import { Button } from '@/components/ui/button';
 import { Menu, Calendar, History, Settings, Users, FileText, Home } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { cn } from '@/lib/utils';
 
 interface NavbarProps {
@@ -60,6 +61,7 @@ export function Navbar({ role }: NavbarProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <UserButton afterSignOutUrl="/" />
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
@@ -72,6 +74,12 @@ export function Navbar({ role }: NavbarProps) {
                   {links.map((link) => (
                     <NavLink key={link.href} {...link} />
                   ))}
+                  <div className="pt-4 border-t">
+                    <div className="flex items-center justify-between px-2">
+                      <span className="text-sm font-medium">Theme</span>
+                      <ThemeToggle />
+                    </div>
+                  </div>
                 </nav>
               </SheetContent>
             </Sheet>

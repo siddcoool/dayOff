@@ -16,27 +16,53 @@ export async function getCurrentUser() {
     return null;
   }
 
+  const email = clerkUser.emailAddresses[0]?.emailAddress || '';
+  
+  // First, try to find by clerkId
   let user = await User.findOne({ clerkId: userId });
 
+  // If not found by clerkId, check by email (in case user recreated Clerk account)
+  if (!user && email) {
+    user = await User.findOne({ email });
+    // If found by email, update the clerkId
+    if (user) {
+      user.clerkId = userId;
+      await user.save();
+    }
+  }
+
   if (!user) {
-    user = await User.create({
-      clerkId: userId,
-      email: clerkUser.emailAddresses[0]?.emailAddress || '',
-      name: clerkUser.firstName && clerkUser.lastName
-        ? `${clerkUser.firstName} ${clerkUser.lastName}`
-        : clerkUser.firstName || clerkUser.emailAddresses[0]?.emailAddress || 'User',
-      role: 'employee',
-    });
+    // Create new user only if neither clerkId nor email exists
+    try {
+      user = await User.create({
+        clerkId: userId,
+        email: email || `user-${userId}@temp.com`,
+        name: clerkUser.firstName && clerkUser.lastName
+          ? `${clerkUser.firstName} ${clerkUser.lastName}`
+          : clerkUser.firstName || email || 'User',
+        role: 'employee',
+      });
+    } catch (error: any) {
+      // If still fails (race condition), try to find again
+      if (error.code === 11000) {
+        user = await User.findOne({ clerkId: userId }) || await User.findOne({ email });
+        if (!user) {
+          throw error;
+        }
+      } else {
+        throw error;
+      }
+    }
   } else {
     // Update user info from Clerk if changed
-    const email = clerkUser.emailAddresses[0]?.emailAddress || user.email;
     const name = clerkUser.firstName && clerkUser.lastName
       ? `${clerkUser.firstName} ${clerkUser.lastName}`
       : clerkUser.firstName || user.name;
     
-    if (user.email !== email || user.name !== name) {
-      user.email = email;
+    if (user.email !== email || user.name !== name || user.clerkId !== userId) {
+      user.email = email || user.email;
       user.name = name;
+      user.clerkId = userId;
       await user.save();
     }
   }

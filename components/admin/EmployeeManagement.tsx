@@ -12,6 +12,7 @@ import { assignAdditionalLeaves } from '@/app/actions/admin-actions';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface Employee {
   _id: string;
@@ -45,7 +46,7 @@ export function EmployeeManagement({ employees, leaveTypes }: EmployeeManagement
 
   const handleAssignLeaves = async (userId: string) => {
     if (!selectedLeaveType || !amount || parseFloat(amount) <= 0) {
-      alert('Please select a leave type and enter a valid amount');
+      toast.error('Please select a leave type and enter a valid amount');
       return;
     }
 
@@ -58,15 +59,16 @@ export function EmployeeManagement({ employees, leaveTypes }: EmployeeManagement
       });
 
       if (result.error) {
-        alert(result.error);
+        toast.error(result.error);
       } else {
+        toast.success(`Successfully assigned ${amount} leave days`);
         setAssignDialogOpen(null);
         setSelectedLeaveType('');
         setAmount('');
         router.refresh();
       }
     } catch (error: any) {
-      alert(error.message || 'Failed to assign leaves');
+      toast.error(error.message || 'Failed to assign leaves');
     } finally {
       setIsSubmitting(false);
     }

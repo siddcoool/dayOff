@@ -1,17 +1,13 @@
+import { Suspense } from 'react';
 import { getCurrentUserWithRole } from '@/app/actions/shared-actions';
 import { getAllLeaveRequests, getAllEmployees } from '@/app/actions/admin-actions';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { ApprovalQueue } from '@/components/admin/ApprovalQueue';
+import { AdminDashboardSkeleton } from '@/components/skeletons/AdminDashboardSkeleton';
 import { redirect } from 'next/navigation';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
-export default async function AdminPage() {
-  const user = await getCurrentUserWithRole();
-  
-  if (!user || user.role !== 'admin') {
-    redirect('/dashboard');
-  }
-
+async function AdminDashboardContent() {
   const [requestsResult, employeesResult] = await Promise.all([
     getAllLeaveRequests(),
     getAllEmployees(),
@@ -37,11 +33,7 @@ export default async function AdminPage() {
   ).length;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Manage leave requests and employees</p>
-      </div>
+    <>
       <AdminDashboard
         stats={{
           totalEmployees: employees.length,
@@ -51,6 +43,26 @@ export default async function AdminPage() {
         }}
       />
       <ApprovalQueue requests={requests} />
+    </>
+  );
+}
+
+export default async function AdminPage() {
+  const user = await getCurrentUserWithRole();
+  
+  if (!user || user.role !== 'admin') {
+    redirect('/dashboard');
+  }
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Manage leave requests and employees</p>
+      </div>
+      <Suspense fallback={<AdminDashboardSkeleton />}>
+        <AdminDashboardContent />
+      </Suspense>
     </div>
   );
 }

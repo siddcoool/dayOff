@@ -2,13 +2,14 @@
   "mcpServers": {
     "shadcn": {
       "command": "npx",
-      "args": [
-        "shadcn@latest",
-        "mcp"
-      ]
+      "args": ["shadcn@latest", "mcp"]
     }
   },
   "clerk": {
-      "url": "https://mcp.clerk.com/mcp"
-    }
+    "url": "https://mcp.clerk.com/mcp"
+  },
+  "tailwindcss-server": {
+    "command": "npx",
+    "args": ["-y", "tailwindcss-mcp-server"]
+  }
 }
