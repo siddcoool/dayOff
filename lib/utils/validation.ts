@@ -40,3 +40,39 @@ export const createLeaveTypeSchema = z.object({
   color: z.string().regex(/^#[0-9A-F]{6}$/i, 'Invalid color format'),
   defaultMonthlyAccrual: z.number().min(0, 'Accrual must be non-negative'),
 });
+
+export const createHolidaySchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  date: z.date({
+    required_error: 'Date is required',
+  }),
+});
+
+export const updateEmployeeSalarySchema = z.object({
+  userId: z.string().min(1),
+  baseSalary: z
+    .number({
+      required_error: 'Base salary is required',
+    })
+    .min(0, 'Base salary must be non-negative'),
+});
+
+export const markSalariesAsPaidSchema = z.object({
+  employeeIds: z.array(z.string().min(1)).min(1, 'Select at least one employee'),
+  periodMonth: z
+    .number({
+      required_error: 'Month is required',
+    })
+    .int()
+    .min(1)
+    .max(12),
+  periodYear: z
+    .number({
+      required_error: 'Year is required',
+    })
+    .int()
+    .min(2000),
+  payDate: z.date({
+    required_error: 'Pay date is required',
+  }),
+});

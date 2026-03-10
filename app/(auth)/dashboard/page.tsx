@@ -1,11 +1,12 @@
 import { Suspense } from 'react';
 import { getCurrentUserWithRole } from '@/app/actions/shared-actions';
-import { getMyLeaveBalance, getMyLeaveHistory, getMyPendingRequests } from '@/app/actions/employee-actions';
-import { getAllLeaveRequests, getAllEmployees } from '@/app/actions/admin-actions';
+import { getMyLeaveBalance, getMyLeaveHistory, getMyPendingRequests, getHolidays } from '@/app/actions/employee-actions';
+import { getAllLeaveRequests, getAllEmployees, getAllHolidays } from '@/app/actions/admin-actions';
 import { LeaveBalanceCard } from '@/components/leave/LeaveBalanceCard';
 import { LeaveHistoryTable } from '@/components/leave/LeaveHistoryTable';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { ApprovalQueue } from '@/components/admin/ApprovalQueue';
+import { HolidayList } from '@/components/holiday/HolidayList';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardSkeleton } from '@/components/skeletons/DashboardSkeleton';
 import { AdminDashboardSkeleton } from '@/components/skeletons/AdminDashboardSkeleton';
@@ -53,19 +54,22 @@ async function AdminDashboardContent() {
 }
 
 async function EmployeeDashboardContent() {
-  const [balanceResult, historyResult, pendingResult] = await Promise.all([
+  const [balanceResult, historyResult, pendingResult, holidaysResult] = await Promise.all([
     getMyLeaveBalance(),
     getMyLeaveHistory(),
     getMyPendingRequests(),
+    getHolidays(),
   ]);
 
   const balances = balanceResult.success ? balanceResult.data : [];
   const history = historyResult.success ? historyResult.data : [];
   const pending = pendingResult.success ? pendingResult.data : [];
+  const holidays = holidaysResult.success ? holidaysResult.data : [];
 
   return (
     <>
       <LeaveBalanceCard balances={balances} />
+      <HolidayList holidays={holidays} />
       {pending.length > 0 && (
         <Card>
           <CardHeader>

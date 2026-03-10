@@ -6,6 +6,11 @@ export interface IUser extends Document {
   name: string;
   role: 'admin' | 'employee';
   leaveBalances: Map<string, number>;
+  /**
+   * Fixed monthly base salary amount in INR.
+   * When undefined/null, finance actions should treat salary as not configured.
+   */
+  baseSalary?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -36,6 +41,11 @@ const UserSchema = new Schema<IUser>(
       type: Map,
       of: Number,
       default: new Map(),
+    },
+    baseSalary: {
+      type: Number,
+      default: null,
+      min: 0,
     },
   },
   {

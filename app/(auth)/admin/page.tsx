@@ -1,20 +1,23 @@
 import { Suspense } from 'react';
 import { getCurrentUserWithRole } from '@/app/actions/shared-actions';
-import { getAllLeaveRequests, getAllEmployees } from '@/app/actions/admin-actions';
+import { getAllLeaveRequests, getAllEmployees, getAllHolidays } from '@/app/actions/admin-actions';
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { ApprovalQueue } from '@/components/admin/ApprovalQueue';
+import { HolidayManagement } from '@/components/admin/HolidayManagement';
 import { AdminDashboardSkeleton } from '@/components/skeletons/AdminDashboardSkeleton';
 import { redirect } from 'next/navigation';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
 async function AdminDashboardContent() {
-  const [requestsResult, employeesResult] = await Promise.all([
+  const [requestsResult, employeesResult, holidaysResult] = await Promise.all([
     getAllLeaveRequests(),
     getAllEmployees(),
+    getAllHolidays(),
   ]);
 
   const requests = requestsResult.success ? requestsResult.data : [];
   const employees = employeesResult.success ? employeesResult.data : [];
+  const holidays = holidaysResult.success ? holidaysResult.data : [];
   
   const now = new Date();
   const monthStart = startOfMonth(now);
@@ -42,6 +45,7 @@ async function AdminDashboardContent() {
           declinedThisMonth,
         }}
       />
+      <HolidayManagement holidays={holidays} />
       <ApprovalQueue requests={requests} />
     </>
   );

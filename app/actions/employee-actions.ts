@@ -5,6 +5,8 @@ import { requireAuth } from '@/lib/auth/clerk';
 import User from '@/lib/models/User';
 import LeaveRequest from '@/lib/models/LeaveRequest';
 import LeaveType from '@/lib/models/LeaveType';
+import Holiday from '@/lib/models/Holiday';
+import SalaryPayment from '@/lib/models/SalaryPayment';
 import { leaveRequestSchema } from '@/lib/utils/validation';
 import { calculateBusinessDays } from '@/lib/utils/date';
 import { revalidatePath } from 'next/cache';
@@ -149,5 +151,90 @@ export async function getMyPendingRequests() {
   } catch (error: any) {
     console.error('Error getting pending requests:', error);
     return { error: error.message || 'Failed to get pending requests' };
+  }
+}
+
+export async function getHolidays() {
+  try {
+    await requireAuth();
+    await connectDB();
+
+    const holidays = await Holiday.find().sort({ date: 1 });
+    return { success: true, data: JSON.parse(JSON.stringify(holidays)) };
+  } catch (error: any) {
+    console.error('Error getting holidays:', error);
+    return { error: error.message || 'Failed to get holidays' };
+  }
+}
+
+export async function getMySalaryPayments() {
+  try {
+    const user = await requireAuth();
+    await connectDB();
+
+    const payments = await SalaryPayment.find({
+      employeeId: user._id,
+    })
+      .sort({ payDate: -1 })
+      .lean();
+
+    return {
+      success: true,
+      data: payments.map((p) => ({
+        _id: p._id.toString(),
+        amount: p.amount,
+        periodMonth: p.periodMonth,
+        periodYear: p.periodYear,
+        payDate: p.payDate,
+        status: p.status,
+      })),
+    };
+  } catch (error: any) {
+    console.error('Error getting salary payments:', error);
+    return { error: error.message || 'Failed to get salary payments' };
+  }
+}
+
+export async function getPayslipById(id: string) {
+  try {
+    const user = await requireAuth();
+    await connectDB();
+
+    const payment = await SalaryPayment.findById(id).populate('employeeId', 'name email');
+
+    if (!payment) {
+      return { error: 'Payslip not found' };
+    }
+
+    const isOwner =
+      payment.employeeId && 'id' in payment.employeeId
+        ? (payment.employeeId as any)._id.toString() === user._id.toString()
+        : payment.employeeId?.toString() === user._id.toString();
+
+    if (!isOwner && user.role !== 'admin') {
+      return { error: 'Not authorized to view this payslip' };
+    }
+
+    const employeeName =
+      payment.employeeId && 'name' in payment.employeeId
+        ? (payment.employeeId as any).name
+        : undefined;
+
+    return {
+      success: true,
+      data: {
+        _id: payment._id.toString(),
+        employeeName: employeeName || 'Employee',
+        employeeId: payment.employeeId,
+        amount: payment.amount,
+        periodMonth: payment.periodMonth,
+        periodYear: payment.periodYear,
+        payDate: payment.payDate,
+        status: payment.status,
+      },
+    };
+  } catch (error: any) {
+    console.error('Error getting payslip:', error);
+    return { error: error.message || 'Failed to get payslip' };
   }
 }

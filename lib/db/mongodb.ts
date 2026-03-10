@@ -1,7 +1,9 @@
 import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://saurabhtripathi147:dmwajtgpd@cluster0.ipvv1ff.mongodb.net/dayOff?retryWrites=true";
-
+import dotenv from 'dotenv';
+dotenv.config();
+const MONGODB_URI = process.env.MONGODB_URI;
+console.log("MONGODB_URI", MONGODB_URI,
+);
 if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
 }
@@ -12,7 +14,7 @@ interface MongooseCache {
 }
 
 declare global {
-  var mongoose: MongooseCache | undefined;
+  var mongoose: MongooseCache;
 }
 
 let cached: MongooseCache = global.mongoose;
@@ -31,7 +33,7 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+    cached.promise = mongoose.connect("mongodb+srv://saurabhtripathi147:xg8xyqgcUlABu0IJ@cluster0.ipvv1ff.mongodb.net/dayOff?retryWrites=true", opts).then((mongoose) => {
       return mongoose;
     });
   }

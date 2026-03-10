@@ -11,36 +11,62 @@ import { cn } from '@/lib/utils';
 
 interface NavbarProps {
   role: 'admin' | 'employee';
+  hasPendingAdminRequests?: boolean;
 }
 
-export function Navbar({ role }: NavbarProps) {
+export function Navbar({ role, hasPendingAdminRequests = false }: NavbarProps) {
   const pathname = usePathname();
 
   const employeeLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
     { href: '/leave/request', label: 'Request Leave', icon: Calendar },
     { href: '/leave/history', label: 'History', icon: History },
+    { href: '/holidays', label: 'Holidays', icon: Calendar },
+    { href: '/finance', label: 'Payslips', icon: FileText },
   ];
 
   const adminLinks = [
     { href: '/admin', label: 'Dashboard', icon: Home },
     { href: '/admin/requests', label: 'Requests', icon: FileText },
     { href: '/admin/employees', label: 'Employees', icon: Users },
+    { href: '/admin/holidays', label: 'Holidays', icon: Calendar },
+    { href: '/admin/finance', label: 'Finance', icon: FileText },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
   const links = role === 'admin' ? adminLinks : employeeLinks;
 
-  const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => {
+  const NavLink = ({
+    href,
+    label,
+    icon: Icon,
+  }: {
+    href: string;
+    label: string;
+    icon: any;
+  }) => {
     const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+    const showPendingDot =
+      role === 'admin' && hasPendingAdminRequests && href === '/admin/requests';
+
     return (
       <Link href={href}>
         <Button
           variant={isActive ? 'default' : 'ghost'}
           className={cn('w-full justify-start', isActive && 'bg-primary text-primary-foreground')}
         >
-          <Icon className="h-4 w-4 mr-2" />
-          {label}
+          <div className="flex items-center">
+            <Icon className="h-4 w-4 mr-2" />
+            <span className="relative inline-flex items-center">
+              <span>{label}</span>
+              {showPendingDot && (
+                <span className="absolute -top-1 -right-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+                </span>
+              )}
+            </span>
+          </div>
         </Button>
       </Link>
     );

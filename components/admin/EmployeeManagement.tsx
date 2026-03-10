@@ -78,7 +78,7 @@ export function EmployeeManagement({ employees, leaveTypes }: EmployeeManagement
     <Card>
       <CardHeader>
         <CardTitle>Employee Management</CardTitle>
-        <CardDescription>View employee leave balances and assign additional leaves</CardDescription>
+        <CardDescription>View employee leave balances and add leave credits</CardDescription>
       </CardHeader>
       <CardContent>
         {employees.length === 0 ? (
@@ -136,19 +136,19 @@ export function EmployeeManagement({ employees, leaveTypes }: EmployeeManagement
                         <DialogTrigger asChild>
                           <Button size="sm" variant="outline">
                             <Plus className="h-4 w-4 mr-1" />
-                            Assign
+                            Add credits
                           </Button>
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>
-                            <DialogTitle>Assign Additional Leaves</DialogTitle>
+                            <DialogTitle>Add Leave Credits</DialogTitle>
                             <DialogDescription>
                               Assign additional leave days to {employee.name}
                             </DialogDescription>
                           </DialogHeader>
                           <div className="space-y-4 py-4">
                             <div className="space-y-2">
-                              <Label htmlFor="leave-type">Leave Type</Label>
+                              <Label htmlFor="leave-type">Leave type</Label>
                               <Select value={selectedLeaveType} onValueChange={setSelectedLeaveType}>
                                 <SelectTrigger id="leave-type">
                                   <SelectValue placeholder="Select leave type" />
@@ -169,7 +169,7 @@ export function EmployeeManagement({ employees, leaveTypes }: EmployeeManagement
                               </Select>
                             </div>
                             <div className="space-y-2">
-                              <Label htmlFor="amount">Amount (days)</Label>
+                              <Label htmlFor="amount">Credits (days)</Label>
                               <Input
                                 id="amount"
                                 type="number"

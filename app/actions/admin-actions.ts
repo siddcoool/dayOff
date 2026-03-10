@@ -6,12 +6,17 @@ import User from '@/lib/models/User';
 import LeaveRequest from '@/lib/models/LeaveRequest';
 import LeaveType from '@/lib/models/LeaveType';
 import SystemConfig from '@/lib/models/SystemConfig';
+import Holiday from '@/lib/models/Holiday';
+import SalaryPayment from '@/lib/models/SalaryPayment';
 import {
   approveLeaveSchema,
   declineLeaveSchema,
   assignLeavesSchema,
   updateSystemConfigSchema,
   createLeaveTypeSchema,
+  createHolidaySchema,
+  updateEmployeeSalarySchema,
+  markSalariesAsPaidSchema,
 } from '@/lib/utils/validation';
 import { revalidatePath } from 'next/cache';
 
@@ -207,7 +212,7 @@ export async function getAllLeaveRequests(filters?: {
 
 export async function updateSystemConfig(formData: {
   key: string;
-  value: any;
+  value: unknown;
 }) {
   try {
     await requireAdmin();
@@ -312,5 +317,250 @@ export async function getAllLeaveTypes() {
   } catch (error: any) {
     console.error('Error getting leave types:', error);
     return { error: error.message || 'Failed to get leave types' };
+  }
+}
+
+export async function getAllHolidays() {
+  try {
+    await requireAdmin();
+    await connectDB();
+
+    const holidays = await Holiday.find().sort({ date: 1 });
+    return { success: true, data: JSON.parse(JSON.stringify(holidays)) };
+  } catch (error: any) {
+    console.error('Error getting holidays:', error);
+    return { error: error.message || 'Failed to get holidays' };
+  }
+}
+
+export async function createHoliday(formData: { name: string; date: Date }) {
+  try {
+    await requireAdmin();
+    await connectDB();
+
+    const validated = createHolidaySchema.parse({
+      ...formData,
+      date: new Date(formData.date),
+    });
+
+    const existing = await Holiday.findOne({ date: validated.date });
+    if (existing) {
+      return { error: 'A holiday already exists on this date' };
+    }
+
+    const holiday = await Holiday.create(validated);
+
+    revalidatePath('/admin');
+    revalidatePath('/dashboard');
+
+    return { success: true, data: JSON.parse(JSON.stringify(holiday)) };
+  } catch (error: any) {
+    console.error('Error creating holiday:', error);
+    return { error: error.message || 'Failed to create holiday' };
+  }
+}
+
+export async function deleteHoliday(formData: { holidayId: string }) {
+  try {
+    await requireAdmin();
+    await connectDB();
+
+    const deleted = await Holiday.findByIdAndDelete(formData.holidayId);
+    if (!deleted) {
+      return { error: 'Holiday not found' };
+    }
+
+    revalidatePath('/admin');
+    revalidatePath('/dashboard');
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error deleting holiday:', error);
+    return { error: error.message || 'Failed to delete holiday' };
+  }
+}
+
+export async function getAllEmployeesWithFinance() {
+  try {
+    await requireAdmin();
+    await connectDB();
+
+    const employees = await User.find({ role: 'employee' })
+      .select('name email baseSalary createdAt')
+      .sort({ name: 1 });
+
+    const employeeIds = employees.map((emp) => emp._id);
+
+    const payments = await SalaryPayment.find({
+      employeeId: { $in: employeeIds },
+    })
+      .sort({ payDate: -1 })
+      .lean();
+
+    const latestPaymentByEmployee = new Map<
+      string,
+      {
+        amount: number;
+        payDate: Date;
+        periodMonth: number;
+        periodYear: number;
+      }
+    >();
+
+    for (const payment of payments) {
+      const key = payment.employeeId.toString();
+      if (!latestPaymentByEmployee.has(key)) {
+        latestPaymentByEmployee.set(key, {
+          amount: payment.amount,
+          payDate: payment.payDate,
+          periodMonth: payment.periodMonth,
+          periodYear: payment.periodYear,
+        });
+      }
+    }
+
+    const result = employees.map((emp) => {
+      const key = emp._id.toString();
+      const latest = latestPaymentByEmployee.get(key) || null;
+
+      return {
+        _id: key,
+        name: emp.name,
+        email: emp.email,
+        baseSalary: emp.baseSalary ?? null,
+        latestPayment: latest
+          ? {
+              amount: latest.amount,
+              payDate: latest.payDate,
+              periodMonth: latest.periodMonth,
+              periodYear: latest.periodYear,
+            }
+          : null,
+        createdAt: emp.createdAt,
+      };
+    });
+
+    return { success: true, data: JSON.parse(JSON.stringify(result)) };
+  } catch (error: any) {
+    console.error('Error getting employees with finance data:', error);
+    return { error: error.message || 'Failed to get employees' };
+  }
+}
+
+export async function updateEmployeeSalary(formData: {
+  userId: string;
+  baseSalary: number;
+}) {
+  try {
+    await requireAdmin();
+    await connectDB();
+
+    const { userId, baseSalary } = updateEmployeeSalarySchema.parse(formData);
+
+    const user = await User.findOneAndUpdate(
+      { _id: userId, role: 'employee' },
+      { baseSalary },
+      { new: true }
+    );
+
+    if (!user) {
+      return { error: 'Employee not found' };
+    }
+
+    revalidatePath('/admin/finance');
+
+    return {
+      success: true,
+      data: {
+        _id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        baseSalary: user.baseSalary ?? null,
+      },
+    };
+  } catch (error: any) {
+    console.error('Error updating employee salary:', error);
+    return { error: error.message || 'Failed to update employee salary' };
+  }
+}
+
+export async function markSalariesAsPaid(formData: {
+  employeeIds: string[];
+  periodMonth: number;
+  periodYear: number;
+  payDate: Date;
+}) {
+  try {
+    await requireAdmin();
+    await connectDB();
+
+    const { employeeIds, periodMonth, periodYear, payDate } =
+      markSalariesAsPaidSchema.parse({
+        ...formData,
+        payDate: new Date(formData.payDate),
+      });
+
+    const employees = await User.find({
+      _id: { $in: employeeIds },
+      role: 'employee',
+    });
+
+    if (employees.length === 0) {
+      return { error: 'No valid employees found' };
+    }
+
+    const missingSalary: string[] = [];
+
+    for (const emp of employees) {
+      if (emp.baseSalary == null || typeof emp.baseSalary !== 'number' || emp.baseSalary <= 0) {
+        missingSalary.push(emp.name || emp.email);
+      }
+    }
+
+    if (missingSalary.length > 0) {
+      return {
+        error: `Base salary not set for: ${missingSalary.join(', ')}`,
+      };
+    }
+
+    let createdCount = 0;
+
+    for (const emp of employees) {
+      await SalaryPayment.findOneAndUpdate(
+        {
+          employeeId: emp._id,
+          periodMonth,
+          periodYear,
+        },
+        {
+          $set: {
+            amount: emp.baseSalary,
+            payDate,
+            status: 'PAID',
+          },
+        },
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+        }
+      );
+      createdCount += 1;
+    }
+
+    revalidatePath('/admin/finance');
+
+    return {
+      success: true,
+      data: {
+        processedEmployees: createdCount,
+        periodMonth,
+        periodYear,
+        payDate,
+      },
+    };
+  } catch (error: any) {
+    console.error('Error marking salaries as paid:', error);
+    return { error: error.message || 'Failed to mark salaries as paid' };
   }
 }
