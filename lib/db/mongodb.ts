@@ -33,7 +33,7 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect("mongodb+srv://saurabhtripathi147:xg8xyqgcUlABu0IJ@cluster0.ipvv1ff.mongodb.net/dayOff?retryWrites=true", opts).then((mongoose) => {
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
       return mongoose;
     });
   }
