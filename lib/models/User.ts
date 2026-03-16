@@ -1,7 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IUser extends Document {
-  clerkId?: string;
   email: string;
   name: string;
   /** Hashed password for NextAuth credentials sign-in. Optional when using OAuth only. */
@@ -19,12 +18,7 @@ export interface IUser extends Document {
 
 const UserSchema = new Schema<IUser>(
   {
-    clerkId: {
-      type: String,
-      required: false,
-      sparse: true,
-      index: true,
-    },
+  
     password: {
       type: String,
       required: false,
