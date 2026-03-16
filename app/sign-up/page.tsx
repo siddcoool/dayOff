@@ -1,15 +1,7 @@
 import Link from "next/link"
-import { redirect } from "next/navigation"
-import { getCurrentUserWithRole } from "@/app/actions/shared-actions"
-import { LoginForm } from "@/components/login-form"
+import { SignupForm } from "@/components/signup-form"
 
-export default async function Home() {
-  const user = await getCurrentUserWithRole()
-
-  if (user) {
-    redirect("/dashboard")
-  }
-
+export default function SignUpPage() {
   return (
     <div className="flex min-h-svh w-full flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="flex flex-col items-center gap-2 text-center">
@@ -17,11 +9,11 @@ export default async function Home() {
           DayOff
         </Link>
         <p className="text-sm text-muted-foreground">
-          Employee Leave Management System
+          Create your account
         </p>
       </div>
       <div className="w-full max-w-sm">
-        <LoginForm />
+        <SignupForm />
       </div>
     </div>
   )

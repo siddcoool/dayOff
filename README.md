@@ -1,10 +1,10 @@
 # DayOff - Employee Leave Management System
 
-A modern, full-featured employee leave management system built with Next.js 16, Clerk authentication, MongoDB, and shadcn/ui.
+A modern, full-featured employee leave management system built with Next.js 16, NextAuth authentication, MongoDB, and shadcn/ui.
 
 ## Features
 
-- **Authentication**: Secure authentication using Clerk
+- **Authentication**: Secure authentication using NextAuth (credentials: email/password)
 - **Role-Based Access**: Admin and Employee roles with different permissions
 - **Leave Management**: 
   - Multiple leave types (Sick Leave, Vacation, Personal, etc.)
@@ -23,7 +23,7 @@ A modern, full-featured employee leave management system built with Next.js 16, 
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router)
-- **Authentication**: Clerk
+- **Authentication**: NextAuth (Credentials provider)
 - **Database**: MongoDB with Mongoose
 - **UI**: shadcn/ui, Tailwind CSS
 - **Validation**: Zod
@@ -35,7 +35,6 @@ A modern, full-featured employee leave management system built with Next.js 16, 
 
 - Node.js 18+ 
 - MongoDB (local or Atlas)
-- Clerk account
 
 ### Installation
 
@@ -50,9 +49,9 @@ npm install
 Create a `.env.local` file:
 
 ```env
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_random_secret_string
 
 # MongoDB
 MONGODB_URI=mongodb://localhost:27017/dayoff
@@ -63,32 +62,29 @@ MONGODB_URI=mongodb://localhost:27017/dayoff
 CRON_SECRET=your_random_secret_string
 ```
 
-3. Set up Clerk:
+Generate a secure value for `NEXTAUTH_SECRET` (e.g. `openssl rand -base64 32`).
 
-- Create a Clerk account at https://clerk.com
-- Create a new application
-- Copy your publishable key and secret key to `.env.local`
-
-4. Seed the database:
+3. Seed the database:
 
 ```bash
 npm run seed
 ```
 
-5. Set up your first admin user:
+4. Create an account and set up your first admin user:
 
-After signing up through Clerk, update the user's role in MongoDB:
+- Open [http://localhost:3000](http://localhost:3000) and sign up with email/password.
+- To make a user an admin, update their role in MongoDB:
 
 ```javascript
 db.users.updateOne(
-  { clerkId: "YOUR_CLERK_USER_ID" },
+  { email: "admin@example.com" },
   { $set: { role: "admin" } }
 )
 ```
 
 Or use MongoDB Compass/Atlas UI to update the user document.
 
-6. Run the development server:
+5. Run the development server:
 
 ```bash
 npm run dev
@@ -167,8 +163,8 @@ scripts/
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | Yes |
-| `CLERK_SECRET_KEY` | Clerk secret key | Yes |
+| `NEXTAUTH_URL` | Full URL of your app (e.g. `http://localhost:3000`) | Yes |
+| `NEXTAUTH_SECRET` | Secret for JWT signing (use `openssl rand -base64 32`) | Yes |
 | `MONGODB_URI` | MongoDB connection string | Yes |
 | `CRON_SECRET` | Secret for cron job authentication | Optional |
 

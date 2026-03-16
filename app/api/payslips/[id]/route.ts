@@ -3,7 +3,7 @@ import connectDB from '@/lib/db/mongodb';
 import SalaryPayment from '@/lib/models/SalaryPayment';
 import User from '@/lib/models/User';
 import { generatePayslip } from '@/lib/utils/payslipGenerator';
-import { requireAuth } from '@/lib/auth/clerk';
+import { requireAuth } from '@/lib/auth/auth';
 
 interface RouteParams {
   params: {

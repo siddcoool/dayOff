@@ -1,9 +1,11 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IUser extends Document {
-  clerkId: string;
+  clerkId?: string;
   email: string;
   name: string;
+  /** Hashed password for NextAuth credentials sign-in. Optional when using OAuth only. */
+  password?: string;
   role: 'admin' | 'employee';
   leaveBalances: Map<string, number>;
   /**
@@ -19,9 +21,14 @@ const UserSchema = new Schema<IUser>(
   {
     clerkId: {
       type: String,
-      required: true,
-      unique: true,
+      required: false,
+      sparse: true,
       index: true,
+    },
+    password: {
+      type: String,
+      required: false,
+      select: false,
     },
     email: {
       type: String,

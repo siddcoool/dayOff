@@ -54,9 +54,9 @@ async function seed() {
 
     console.log('Seed completed successfully!');
     console.log('\nNext steps:');
-    console.log('1. Sign up a user through Clerk');
+    console.log('1. Sign up a user at http://localhost:3000/sign-up');
     console.log('2. Update that user\'s role to "admin" in MongoDB:');
-    console.log('   db.users.updateOne({ clerkId: "YOUR_CLERK_ID" }, { $set: { role: "admin" } })');
+    console.log('   db.users.updateOne({ email: "your@email.com" }, { $set: { role: "admin" } })');
     process.exit(0);
   } catch (error) {
     console.error('Error seeding database:', error);

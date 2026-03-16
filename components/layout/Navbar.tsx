@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserButton } from '@clerk/nextjs';
+import { signOut, useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
-import { Menu, Calendar, History, Settings, Users, FileText, Home } from 'lucide-react';
+import { Menu, Calendar, History, Settings, Users, FileText, Home, LogOut, User } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +17,7 @@ interface NavbarProps {
 
 export function Navbar({ role, hasPendingAdminRequests = false }: NavbarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const employeeLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -88,7 +90,31 @@ export function Navbar({ role, hasPendingAdminRequests = false }: NavbarProps) {
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <UserButton afterSignOutUrl="/" />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <User className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56" align="end">
+                <div className="space-y-2">
+                  {session?.user?.name && (
+                    <p className="text-sm font-medium truncate">{session.user.name}</p>
+                  )}
+                  {session?.user?.email && (
+                    <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
+                  )}
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => signOut({ callbackUrl: '/' })}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign out
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Sheet>
               <SheetTrigger asChild className="md:hidden">
                 <Button variant="ghost" size="icon">

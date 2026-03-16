@@ -1,7 +1,7 @@
 'use server';
 
 import connectDB from '@/lib/db/mongodb';
-import { getCurrentUser } from '@/lib/auth/clerk';
+import { getCurrentUser } from '@/lib/auth/auth';
 import LeaveType from '@/lib/models/LeaveType';
 import User from '@/lib/models/User';
 
