@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getCurrentUserWithRole } from '@/app/actions/shared-actions';
 import { getAllEmployeesWithFinance } from '@/app/actions/admin-actions';
 import { FinanceManagement } from '@/components/admin/FinanceManagement';
+import { FinanceManagementSkeleton } from '@/components/skeletons/FinanceManagementSkeleton';
 import { redirect } from 'next/navigation';
 
 async function FinanceManagementContent() {
@@ -27,7 +28,7 @@ export default async function AdminFinancePage() {
           Manage employee base salaries and record monthly payments
         </p>
       </div>
-      <Suspense fallback={<div>Loading finance data...</div>}>
+      <Suspense fallback={<FinanceManagementSkeleton />}>
         <FinanceManagementContent />
       </Suspense>
     </div>

@@ -1,14 +1,24 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { signOut, useSession } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Menu, Calendar, History, Settings, Users, FileText, Home, LogOut, User } from 'lucide-react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ThemeToggle } from '@/components/theme/theme-toggle';
-import { cn } from '@/lib/utils';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { signOut, useSession } from 'next-auth/react'
+import { Button } from '@/components/ui/button'
+import {
+  Menu,
+  Calendar,
+  History,
+  Settings,
+  Users,
+  FileText,
+  Home,
+  LogOut,
+  User,
+} from 'lucide-react'
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { ThemeToggle } from '@/components/theme/theme-toggle'
+import { cn } from '@/lib/utils'
 
 interface NavbarProps {
   role: 'admin' | 'employee';
@@ -16,8 +26,8 @@ interface NavbarProps {
 }
 
 export function Navbar({ role, hasPendingAdminRequests = false }: NavbarProps) {
-  const pathname = usePathname();
-  const { data: session } = useSession();
+  const pathname = usePathname()
+  const { data: session } = useSession()
 
   const employeeLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: Home },
@@ -36,7 +46,7 @@ export function Navbar({ role, hasPendingAdminRequests = false }: NavbarProps) {
     { href: '/admin/settings', label: 'Settings', icon: Settings },
   ];
 
-  const links = role === 'admin' ? adminLinks : employeeLinks;
+  const links = role === 'admin' ? adminLinks : employeeLinks
 
   const NavLink = ({
     href,
@@ -45,11 +55,12 @@ export function Navbar({ role, hasPendingAdminRequests = false }: NavbarProps) {
   }: {
     href: string;
     label: string;
-    icon: any;
+    icon: any
   }) => {
-    const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+    const isActive =
+      pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
     const showPendingDot =
-      role === 'admin' && hasPendingAdminRequests && href === '/admin/requests';
+      role === 'admin' && hasPendingAdminRequests && href === '/admin/requests'
 
     return (
       <Link href={href}>
@@ -71,73 +82,97 @@ export function Navbar({ role, hasPendingAdminRequests = false }: NavbarProps) {
           </div>
         </Button>
       </Link>
-    );
+    )
   };
 
   return (
-    <nav className="border-b bg-background sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="font-bold text-xl">
-              DayOff
-            </Link>
-            <div className="hidden md:flex items-center gap-2">
-              {links.map((link) => (
-                <NavLink key={link.href} {...link} />
-              ))}
-            </div>
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <User className="h-5 w-5" />
+    <>
+      {/* Mobile top bar with drawer navigation */}
+      <nav className="border-b bg-background flex items-center justify-between px-4 h-16 md:hidden">
+        <div className="flex items-center gap-2">
+          <Link href="/dashboard" className="font-bold text-xl">
+            DayOff
+          </Link>
+        </div>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <User className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56" align="end">
+              <div className="space-y-2">
+                {session?.user?.name && (
+                  <p className="text-sm font-medium truncate">{session.user.name}</p>
+                )}
+                {session?.user?.email && (
+                  <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
+                )}
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start"
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign out
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56" align="end">
-                <div className="space-y-2">
-                  {session?.user?.name && (
-                    <p className="text-sm font-medium truncate">{session.user.name}</p>
-                  )}
-                  {session?.user?.email && (
-                    <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
-                  )}
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => signOut({ callbackUrl: '/' })}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
-                  </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[260px]">
+              <div className="mt-8 space-y-4">
+                <div className="px-2">
+                  <p className="font-semibold text-lg">Navigation</p>
                 </div>
-              </PopoverContent>
-            </Popover>
-            <Sheet>
-              <SheetTrigger asChild className="md:hidden">
-                <Button variant="ghost" size="icon">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-[300px]">
-                <nav className="flex flex-col gap-2 mt-8">
+                <nav className="flex flex-col gap-2">
                   {links.map((link) => (
                     <NavLink key={link.href} {...link} />
                   ))}
-                  <div className="pt-4 border-t">
-                    <div className="flex items-center justify-between px-2">
-                      <span className="text-sm font-medium">Theme</span>
-                      <ThemeToggle />
-                    </div>
-                  </div>
                 </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
-      </div>
-    </nav>
-  );
+      </nav>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden md:flex md:flex-col md:w-64 md:border-r md:bg-background md:sticky md:top-0 md:h-screen">
+        <div className="flex items-center justify-between px-4 h-16 border-b">
+          <Link href="/dashboard" className="font-bold text-xl">
+            DayOff
+          </Link>
+          <ThemeToggle />
+        </div>
+        <nav className="flex-1 px-2 py-4 space-y-1">
+          {links.map((link) => (
+            <NavLink key={link.href} {...link} />
+          ))}
+        </nav>
+        <div className="border-t px-4 py-4 space-y-2">
+          {session?.user?.name && (
+            <p className="text-sm font-medium truncate">{session.user.name}</p>
+          )}
+          {session?.user?.email && (
+            <p className="text-xs text-muted-foreground truncate">{session.user.email}</p>
+          )}
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => signOut({ callbackUrl: '/' })}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign out
+          </Button>
+        </div>
+      </aside>
+    </>
+  )
 }

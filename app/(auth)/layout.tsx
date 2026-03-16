@@ -8,26 +8,29 @@ export default async function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await getCurrentUserWithRole();
+  const user = await getCurrentUserWithRole()
 
   if (!user) {
-    redirect('/');
+    redirect('/')
   }
 
-  let hasPendingAdminRequests = false;
+  let hasPendingAdminRequests = false
 
   if (user.role === 'admin') {
-    const requestsResult = await getAllLeaveRequests({ status: 'pending' });
-    const requests = requestsResult.success ? requestsResult.data : [];
-    hasPendingAdminRequests = requests.length > 0;
+    const requestsResult = await getAllLeaveRequests({ status: 'pending' })
+    const requests = requestsResult.success ? requestsResult.data : []
+    hasPendingAdminRequests = requests.length > 0
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar role={user.role} hasPendingAdminRequests={hasPendingAdminRequests} />
+    <div className="min-h-screen flex flex-col md:flex-row">
+      <Navbar
+        role={user.role}
+        hasPendingAdminRequests={hasPendingAdminRequests}
+      />
       <main className="flex-1 container mx-auto px-4 py-8">
         {children}
       </main>
     </div>
-  );
+  )
 }

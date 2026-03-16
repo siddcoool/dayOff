@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getCurrentUserWithRole } from '@/app/actions/shared-actions';
 import { getMySalaryPayments } from '@/app/actions/employee-actions';
 import { EmployeePayslips } from '@/components/finance/EmployeePayslips';
+import { EmployeePayslipsSkeleton } from '@/components/skeletons/EmployeePayslipsSkeleton';
 import { redirect } from 'next/navigation';
 
 async function EmployeePayslipsContent() {
@@ -28,7 +29,7 @@ export default async function FinancePage() {
         <h1 className="text-3xl font-bold">Payslips</h1>
         <p className="text-muted-foreground">View and download your salary payslips.</p>
       </div>
-      <Suspense fallback={<div>Loading payslips...</div>}>
+      <Suspense fallback={<EmployeePayslipsSkeleton />}>
         <EmployeePayslipsContent />
       </Suspense>
     </div>
